@@ -1,6 +1,6 @@
 ---
 name: english-vocab
-description: "Process English vocabulary, expressions, and Backend terminology submitted by the learner. Trigger: when the user sends new words, unfamiliar sentence patterns, Backend terms, or technical expressions they want to learn."
+description: "Process English vocabulary, expressions, Backend terminology, and speaking topics submitted by the learner. Trigger: when the user sends new words, unfamiliar sentence patterns, Backend terms, technical expressions, or topics they want to practice."
 ---
 
 # English Vocab — Vocabulary and Learner Profile Management
@@ -18,7 +18,9 @@ You handle all vocabulary, expression, and terminology inputs from the learner. 
 When the learner submits new content:
 
 ### 1. Identify Type
-Classify as: word / phrase / sentence pattern / technical term / Backend idiom
+Classify as: word / phrase / sentence pattern / technical term / Backend idiom / **topic**
+
+If the input is a **topic** (a Backend concept or scenario the learner wants to practice discussing), skip to the topic handling flow below.
 
 ### 2. Provide Immediate Feedback
 - **Meaning**: clear, concise explanation
@@ -49,6 +51,24 @@ Add the item to the **Knowledge Points Queue** table:
 ```
 | Item | Type | Priority | Schedule | Added |
 | backpressure | technical term | high | today | 2024-01-15 |
+```
+
+## Topic Handling
+
+When the learner submits a topic they want to practice (e.g., "I want to practice talking about circuit breakers" or "加一个话题：gRPC vs REST"):
+
+1. **Acknowledge** — confirm the topic has been added.
+2. **Add to Preferred Topics** in MEMORY.md under `### Preferred Topics`:
+   ```
+   | Topic | Added | Status |
+   | circuit breaker pattern | 2024-01-15 | pending |
+   ```
+3. **Status values**: `pending` (not yet trained), `in_progress` (currently being trained), `done` (completed).
+4. Topics here are **prioritized over** the general topic pool in `english-train`.
+
+Log to HISTORY.md:
+```
+[YYYY-MM-DD HH:MM] english-vocab | Topic added: [topic name]
 ```
 
 ## Week 1: Assessment Mode
