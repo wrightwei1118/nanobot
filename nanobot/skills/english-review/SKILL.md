@@ -27,6 +27,7 @@ Before generating the report, gather all necessary data:
 2. **From `memory/HISTORY.md`**:
    - Search for all `english-train` entries since the last review date.
    - Search for all `english-vocab` entries since the last review date.
+   - Search for all `english-drill` entries since the last review date.
 
 ## Analysis Dimensions
 
@@ -52,7 +53,13 @@ Analyze the collected data across these dimensions:
 - Which expressions are still shaky and need reinforcement?
 - How is the learner progressing with AI Backend vocabulary specifically?
 
-### 5. Knowledge Points Status
+### 5. Sentence Template Mastery
+- Which templates has the learner internalized (consistently correct in recall + rewrite)?
+- Which templates are still shaky (errors in recall, limited rewrite variety)?
+- How well does the learner transfer patterns to new contexts (Apply exercise results)?
+- Are there enough templates in the queue, or should the learner add more?
+
+### 6. Knowledge Points Status
 - Which items from the queue were practiced this week?
 - Which items are still queued?
 - What new items were added?

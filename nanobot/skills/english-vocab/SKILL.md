@@ -1,6 +1,6 @@
 ---
 name: english-vocab
-description: "Process English vocabulary, expressions, Backend terminology, and speaking topics submitted by the learner. Trigger: when the user sends new words, unfamiliar sentence patterns, Backend terms, technical expressions, or topics they want to practice."
+description: "Process English vocabulary, expressions, Backend terminology, sentence templates, and speaking topics submitted by the learner. Trigger: when the user sends new words, unfamiliar sentence patterns, Backend terms, technical expressions, sentence templates, or topics they want to practice."
 ---
 
 # English Vocab — Vocabulary and Learner Profile Management
@@ -18,9 +18,11 @@ You handle all vocabulary, expression, and terminology inputs from the learner. 
 When the learner submits new content:
 
 ### 1. Identify Type
-Classify as: word / phrase / sentence pattern / technical term / Backend idiom / **topic**
+Classify as: word / phrase / sentence pattern / technical term / Backend idiom / **topic** / **sentence template**
 
 If the input is a **topic** (a Backend concept or scenario the learner wants to practice discussing), skip to the topic handling flow below.
+
+If the input is a **sentence template** (a complete sentence the learner wants to internalize as a reusable pattern, or they explicitly say "模板"/"template"), skip to the sentence template handling flow below.
 
 ### 2. Provide Immediate Feedback
 - **Meaning**: clear, concise explanation
@@ -103,6 +105,53 @@ Log to HISTORY.md:
 For comparison topics:
 ```
 [YYYY-MM-DD HH:MM] english-vocab | Comparison topic split: [original] → [sub-topic 1], [sub-topic 2], ..., [summary topic]
+```
+
+## Sentence Template Handling
+
+When the learner submits a complete sentence that looks like a reusable professional pattern (or explicitly says "模板"/"template"):
+
+### Detection
+
+A sentence template is a complete sentence that:
+- Expresses a reusable Backend communication pattern (e.g., explaining trade-offs, proposing solutions, describing architecture)
+- Contains substitutable slots — parts that can be swapped for different contexts
+- Is distinct from a simple phrase or idiom: it's a full sentence structure the learner wants to internalize
+
+### Processing
+
+1. **Identify the core pattern** — extract the abstract structure:
+   - e.g., "The Graph pattern offers greater flexibility for complex workflows" → `X offers/provides [greater/more] Y for Z`
+
+2. **Provide 2-3 rewrite variations** — synonym swaps, structural rearrangements:
+   - Verb swaps: offers → provides, gives, enables
+   - Adjective swaps: greater → more, improved, enhanced
+   - Structural: active → passive voice, clause reordering
+   - e.g., "provides more flexibility" / "gives you more flexibility" / "enables greater flexibility in complex workflows"
+
+3. **Note key substitutable slots** — which parts are interchangeable and what kinds of substitutions work
+
+### Storage
+
+Add to the **Knowledge Points Queue** in MEMORY.md with type `sentence template`:
+
+```
+| Item | Type | Priority | Schedule | Added |
+| The Graph pattern offers greater flexibility for complex workflows | sentence template | high | today | 2026-03-26 |
+```
+
+Add to a new **Sentence Templates** section in MEMORY.md (create if it doesn't exist):
+
+```
+| # | Original | Variations | Pattern | Schedule | Added |
+| 1 | The Graph pattern offers greater flexibility for complex workflows | provides more flexibility / gives you more flexibility / enables greater flexibility | X offers/provides Y for Z | today | 2026-03-26 |
+```
+
+### Logging
+
+Append to `memory/HISTORY.md`:
+```
+[YYYY-MM-DD HH:MM] english-vocab | Template added: [original sentence] (N variations)
 ```
 
 ## Week 1: Assessment Mode
