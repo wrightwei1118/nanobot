@@ -57,11 +57,41 @@ Add the item to the **Knowledge Points Queue** table:
 
 When the learner submits a topic they want to practice (e.g., "I want to practice talking about circuit breakers" or "加一个话题：gRPC vs REST"):
 
+### Comparison Topic Detection
+
+If the topic contains a comparison pattern (A vs B, A vs B vs C, A 和 B 的区别, etc.), **split it by default** into independent sub-topics plus a final comparison summary:
+
+**Example**: learner submits "gRPC vs REST vs GraphQL"
+→ Split into:
+1. `REST API design` — pending
+2. `gRPC fundamentals` — pending
+3. `GraphQL basics` — pending
+4. `REST vs gRPC vs GraphQL: comparison and trade-offs` — pending (summary)
+
+**Rules**:
+- Each sub-topic focuses on explaining that one technology/concept independently (what it is, how it works, when to use it).
+- The final summary topic focuses purely on **comparing** the items: differences, trade-offs, and when to pick each.
+- All sub-topics share the same `group` tag so `english-train` trains them in order.
+- The summary topic is always last in the group.
+
+Add to Preferred Topics with `Group` column:
+```
+| Topic | Added | Status | Group |
+| REST API design | 2024-01-15 | pending | grpc-rest-graphql |
+| gRPC fundamentals | 2024-01-15 | pending | grpc-rest-graphql |
+| GraphQL basics | 2024-01-15 | pending | grpc-rest-graphql |
+| REST vs gRPC vs GraphQL: comparison and trade-offs | 2024-01-15 | pending | grpc-rest-graphql (summary) |
+```
+
+**Acknowledge** — tell the learner you split the comparison into N+1 sessions (N individual + 1 summary), and list them.
+
+### Regular (Non-Comparison) Topics
+
 1. **Acknowledge** — confirm the topic has been added.
 2. **Add to Preferred Topics** in MEMORY.md under `### Preferred Topics`:
    ```
-   | Topic | Added | Status |
-   | circuit breaker pattern | 2024-01-15 | pending |
+   | Topic | Added | Status | Group |
+   | circuit breaker pattern | 2024-01-15 | pending | — |
    ```
 3. **Status values**: `pending` (not yet trained), `in_progress` (currently being trained), `done` (completed).
 4. Topics here are **prioritized over** the general topic pool in `english-train`.
@@ -69,6 +99,10 @@ When the learner submits a topic they want to practice (e.g., "I want to practic
 Log to HISTORY.md:
 ```
 [YYYY-MM-DD HH:MM] english-vocab | Topic added: [topic name]
+```
+For comparison topics:
+```
+[YYYY-MM-DD HH:MM] english-vocab | Comparison topic split: [original] → [sub-topic 1], [sub-topic 2], ..., [summary topic]
 ```
 
 ## Week 1: Assessment Mode

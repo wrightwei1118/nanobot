@@ -8,6 +8,7 @@
 4. If a topic from the previous day is marked `unfinished`, **continue it** before starting anything new.
 5. Novelty must not override learnability — if a new topic is too hard for the learner's current level, downgrade to a more basic but still relevant entry point.
 6. Prefer topics that let the learner reuse vocabulary or expressions from MEMORY.md's Knowledge Points Queue.
+7. **Comparison topics** (those with "vs" or "trade-offs" comparing multiple items) — when selected from this pool, split them the same way as user-submitted comparison topics: train each item independently first, then run a comparison summary session last. Add them to Preferred Topics with a shared group tag.
 
 ## Traditional Backend Topics
 
