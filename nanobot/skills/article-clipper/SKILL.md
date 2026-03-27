@@ -11,7 +11,7 @@ You are an article classification assistant. Your job is to analyze content the 
 ## Before Starting
 
 1. **Check MCP Notion tools** — verify tools with `mcp__notion__` prefix are available (e.g. `mcp__notion__search`, `mcp__notion__create_page`, `mcp__notion__append_block_children`). If not available, tell the user to configure the Notion MCP server following `references/notion-setup.md` and stop.
-2. **Identify the Notion parent page** — the user should have a dedicated parent page for article clips. If unknown, ask the user for the parent page name or ID. Remember it for future use.
+2. **Identify the Notion parent page** — the parent page name is **"nanobot"**. Use `mcp__notion__search` to find it.
 
 ## Input Processing
 
@@ -34,6 +34,18 @@ Assign the **most specific** category possible. Reference `references/categories
 If no existing category fits well, propose a new one following the naming style in `references/categories.md` — short, specific, title-cased English terms.
 
 When the content spans multiple topics, pick the **primary** topic. Mention secondary topics in the summary.
+
+## Notion Page Hierarchy — 严格三层，禁止第四层
+
+```
+nanobot (Parent Page, 第1层) → Category Page (第2层) → Weekly Sub-page (第3层)
+```
+
+- **第1层**：`nanobot`，已存在，不要创建
+- **第2层**：Category Page，直接挂在 nanobot 下（如 "RAG Pipeline"、"Prompt Engineering"）
+- **第3层**：Weekly Sub-page（如 "2026-W13"），挂在 Category Page 下
+
+**禁止创建第四层。** `categories.md` 中的分组标题（AI / LLM、Software Engineering、Programming）仅供分类参考，**不要**在 Notion 中创建对应的分组页面。
 
 ## Notion Operations
 
