@@ -57,35 +57,15 @@ Search within the category page for a child page matching the current week strin
 
 ### Step 3: Append Content
 
-Use `mcp__notion__append_block_children` to append a content block to the weekly sub-page. Structure:
+Use `mcp__notion__append_block_children` to append the content snippet directly to the weekly sub-page. No title, no timestamp, no summary — just the original text snippet or extracted content as-is.
 
-```
----
-## [Title or Source]
-**Saved:** YYYY-MM-DD HH:MM
-
-### Summary
-[2-3 sentence summary of the key points]
-
-### Clip
-[Original text snippet or extracted content]
----
-```
-
-For URL sources, include the source link. For screenshots, note that it was extracted from an image.
+For URL sources, include the source link at the end. For screenshots, append the extracted text.
 
 ## Confirmation
 
-After saving, report to the user:
+After saving, report to the user concisely. Example:
 
-- **Category:** the assigned category
-- **Location:** Category Page → Week Sub-page
-- **Summary:** 1-2 sentence summary of what was saved
-
-Keep it concise. Example:
-
-> Saved to **Prompt Engineering** → 2026-W13
-> Summary: Few-shot prompting techniques for structured output with JSON mode.
+> 📎 **Prompt Engineering** → 2026-W13
 
 ## Edge Cases
 
