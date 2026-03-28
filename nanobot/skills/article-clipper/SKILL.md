@@ -23,29 +23,34 @@ Handle three input types:
 
 ## Classification Logic
 
-Assign the **most specific** category possible. Reference `references/categories.md` for seed categories and naming conventions.
+`references/categories.md` is the **living category registry** — it is the single source of truth for all categories.
 
-**Guiding principle:** choose the narrowest applicable label.
-- Use "RAG Pipeline" not "AI"
-- Use "Circuit Breaker" not "Microservices"
-- Use "Prompt Engineering" not "LLM"
-- Use "Connection Pooling" not "Database"
+### Step 1: Read the registry
 
-If no existing category fits well, propose a new one following the naming style in `references/categories.md` — short, specific, title-cased English terms.
+Read `references/categories.md` before every classification to get the current category list.
 
-When the content spans multiple topics, pick the **primary** topic. Mention secondary topics in the summary.
+### Step 2: Match or create
 
-## Notion Page Hierarchy — 严格三层，禁止第四层
+1. **Try to match an existing category first.** A close match is better than a new category — prefer reusing over proliferating. For example, an article about LangGraph agents fits "Agent Framework", not a new "LangGraph" category.
+2. **Only create a new category when the content clearly doesn't fit any existing one.** When you do, immediately update `references/categories.md` — add the new category to the appropriate group table with a brief "Covers" description, using the Edit tool.
+3. **Naming conventions:** English, title-cased, 1-3 words, specific but not too narrow. Avoid single-technology names (no "LangChain", use "Agent Framework").
+
+### Avoiding category sprawl
+
+The goal is a compact, reusable set of categories (upper limit: **100**). Before creating a new category, ask yourself: "Will this category likely collect more than one article over time?" If not, find the closest existing one.
+
+When the content spans multiple topics, pick the **primary** topic.
+
+## Notion Page Hierarchy — 严格两层
 
 ```
-nanobot (Parent Page, 第1层) → Category Page (第2层) → Weekly Sub-page (第3层)
+nanobot (Parent Page, 第1层) → Category Page (第2层)
 ```
 
 - **第1层**：`nanobot`，已存在，不要创建
 - **第2层**：Category Page，直接挂在 nanobot 下（如 "RAG Pipeline"、"Prompt Engineering"）
-- **第3层**：Weekly Sub-page（如 "2026-W13"），挂在 Category Page 下
 
-**禁止创建第四层。** `categories.md` 中的分组标题（AI / LLM、Software Engineering、Programming）仅供分类参考，**不要**在 Notion 中创建对应的分组页面。
+**禁止创建第三层。** `categories.md` 中的分组标题（AI / LLM、Software Engineering、Programming）仅供分类参考，**不要**在 Notion 中创建对应的分组页面。
 
 ## Notion Operations
 
@@ -58,18 +63,9 @@ Use `mcp__notion__search` to search for a page matching the category name under 
 - **Found** → use it.
 - **Not found** → create a new page under the parent page with the category name as title using `mcp__notion__create_page`.
 
-### Step 2: Find or Create Weekly Sub-page
+### Step 2: Append Content
 
-The weekly sub-page naming format is **"YYYY-Www"** (e.g., "2026-W13" for the 13th week of 2026).
-
-Search within the category page for a child page matching the current week string.
-
-- **Found** → use it.
-- **Not found** → create a new sub-page under the category page with the week string as title.
-
-### Step 3: Append Content
-
-Use `mcp__notion__append_block_children` to append the content snippet directly to the weekly sub-page. No title, no timestamp, no summary — just the original text snippet or extracted content as-is.
+Use `mcp__notion__append_block_children` to append the content snippet directly to the category page. No title, no timestamp, no summary — just the original text snippet or extracted content as-is.
 
 For URL sources, include the source link at the end. For screenshots, append the extracted text.
 
@@ -77,7 +73,11 @@ For URL sources, include the source link at the end. For screenshots, append the
 
 After saving, report to the user concisely. Example:
 
-> 📎 **Prompt Engineering** → 2026-W13
+> 📎 → **Prompt Engineering**
+
+## Error Handling
+
+If any Notion MCP call fails (search, create page, or append), stop and report the error to the user clearly — include which step failed and the error message. Do not retry silently.
 
 ## Edge Cases
 

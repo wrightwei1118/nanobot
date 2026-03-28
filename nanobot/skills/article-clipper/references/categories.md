@@ -1,4 +1,4 @@
-# Article Categories — 种子类别和命名规范
+# Article Categories — AI 自维护分类注册表
 
 ## Naming Conventions
 
@@ -7,7 +7,7 @@
 - Avoid overly broad terms like "AI", "Backend", "Programming"
 - When in doubt, prefer the term most commonly used in the technical community
 
-## Seed Categories
+## Categories
 
 ### AI / LLM
 
@@ -58,11 +58,6 @@
 | Type Systems | Static typing, generics, type inference |
 | Functional Programming | Immutability, monads, pure functions, composition |
 
-## Adding New Categories
+## Maintaining This File
 
-When creating a new category not listed here:
-
-1. Check if an existing category already covers the topic — avoid duplication
-2. Follow the naming conventions above
-3. Keep it at the right granularity — specific enough to be useful, broad enough to collect multiple articles
-4. Examples of good new categories: "Streaming Architecture", "Feature Store", "Synthetic Data", "Code Review"
+This file is maintained by the article-clipper skill. When a new category is created during classification, it is added to the appropriate group table above. Do not create categories that overlap with existing ones — check the tables first.
