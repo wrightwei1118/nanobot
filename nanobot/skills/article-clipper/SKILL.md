@@ -70,6 +70,8 @@ Use `mcp__notion__search` to search for a page matching the category name under 
 
 Use `mcp__notion__append_block_children` with the `page_id` from Step 1 to append the content snippet directly to the category page. No title, no timestamp, no summary — just the original text snippet or extracted content as-is.
 
+**Important:** The underlying Notion API endpoint is `PATCH /v1/blocks/{block_id}/children` — NOT POST. If calling the API directly, you must use the PATCH method, otherwise you will get a 404 error.
+
 For URL sources, include the source link at the end. For screenshots, append the extracted text.
 
 **⛔ Checkpoint:** Inspect the return value. If the call returned an error or unexpected result, STOP and tell the user:
