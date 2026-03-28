@@ -60,24 +60,26 @@ Use MCP Notion tools to execute these steps in order:
 
 Use `mcp__notion__search` to search for a page matching the category name under the parent page.
 
-- **Found** → use it.
-- **Not found** → create a new page under the parent page with the category name as title using `mcp__notion__create_page`.
+- **Found** → extract the `page_id` from the result.
+- **Not found** → create a new page under the parent page with the category name as title using `mcp__notion__create_page`. Extract the `page_id` from the creation result.
+
+**⛔ Checkpoint:** Inspect the return value. You must have a valid `page_id` before proceeding. If the call returned an error, an empty result, or no `page_id`, STOP and tell the user:
+> ❌ Step 1 失败（search/create category page）：`<error detail or "未返回 page_id">`
 
 ### Step 2: Append Content
 
-Use `mcp__notion__append_block_children` to append the content snippet directly to the category page. No title, no timestamp, no summary — just the original text snippet or extracted content as-is.
+Use `mcp__notion__append_block_children` with the `page_id` from Step 1 to append the content snippet directly to the category page. No title, no timestamp, no summary — just the original text snippet or extracted content as-is.
 
 For URL sources, include the source link at the end. For screenshots, append the extracted text.
 
-## Confirmation
+**⛔ Checkpoint:** Inspect the return value. If the call returned an error or unexpected result, STOP and tell the user:
+> ❌ Step 2 失败（append content）：`<error detail>`
 
-After saving, report to the user concisely. Example:
+### Confirmation
+
+Only report success after both checkpoints pass:
 
 > 📎 → **Prompt Engineering**
-
-## Error Handling
-
-If any Notion MCP call fails (search, create page, or append), stop and report the error to the user clearly — include which step failed and the error message. Do not retry silently.
 
 ## Edge Cases
 
