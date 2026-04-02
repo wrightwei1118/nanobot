@@ -91,6 +91,32 @@ Top 1 issue to fix next: ...
 Topic status: finished / unfinished
 ```
 
+## Read-Aloud Phase
+
+After scoring, present all rounds' Complete Versions and Polished Versions as read-aloud material. No additional feedback — just the text for the learner to read out loud.
+
+Format:
+
+```
+## Read Aloud
+
+### Round 1 — [question topic]
+
+**Complete Version:**
+(the corrected version from Layer 2)
+
+**Polished Version:**
+(the professional version from Layer 4)
+
+### Round 2 — [question topic]
+...
+```
+
+Rules:
+- Include all rounds that had feedback (skip rounds where the learner's response was already good and had no corrections).
+- Do not add commentary, tips, or corrections — this is pure reading material.
+- The learner reads each version aloud at their own pace.
+
 ## Post-Session Updates
 
 Update `memory/MEMORY.md`:
@@ -102,6 +128,17 @@ Update `memory/MEMORY.md`:
 5. **Learner Profile**: update if new weakness patterns or improvements were observed.
 6. **Expression Upgrades → Knowledge Points Queue**: batch-save all Expression Upgrades from the session as Knowledge Points (type: `expression`, schedule: `today`). Deduplicate against existing entries.
 7. **Polished Version → Sentence Templates**: for each round where a reusable sentence pattern was identified (see `references/feedback-format.md` Auto-Extraction rules), add it to the Sentence Templates section with the abstract pattern extracted. These will be picked up by `english-drill` for recall/rewrite/apply practice.
+8. **Readings → `memory/readings.md`**: append each round's Complete Version and Polished Version for use by `english-read`. Format per entry:
+   ```
+   ## [YYYY-MM-DD] Topic: [topic] | Round [N]: [question topic]
+
+   **Complete Version:**
+   [text]
+
+   **Polished Version:**
+   [text]
+   ```
+   Keep only the most recent 30 days of entries. Delete older ones to avoid file bloat.
 
 Append a session summary to `memory/HISTORY.md`:
 ```
