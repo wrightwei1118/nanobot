@@ -60,13 +60,15 @@ When today's topic is a **group summary** (e.g., "REST vs gRPC vs GraphQL: compa
 
 ## Per-Turn Interaction
 
-After every learner response:
+After every learner response, provide a **4-layer feedback** following `references/feedback-format.md`:
 
-1. **Feedback** — follow the format in `references/feedback-format.md`:
-   - Correct 1-2 key Fluency or Grammar issues using the "Your sentence → Better version → Why" format.
-   - Skip correction if the response is already good.
-2. **Expression Upgrade** — provide 2-3 more professional Backend expressions (see `references/feedback-format.md` for examples).
-3. **Mini Retry** — ask the learner to re-express in 3-5 sentences. Max 1 retry per turn. If the retry captures core points, move on immediately.
+1. **Feedback** — table format correcting all **key errors**: grammar, word form, wrong word, recurring mistakes, sentence fragments, conciseness issues (see `references/feedback-format.md` for full criteria). Skip if already good.
+2. **Complete Version** — rewrite the learner's full response with all errors fixed, preserving their original structure. Bold changed parts.
+3. **Expression Upgrade** — table of 2-3 casual-to-professional expression upgrades for Backend contexts.
+4. **Polished Version** — professional-grade rewrite using the learner's sentence patterns and thought flow. Bold key changes.
+
+Then:
+5. **Mini Retry** — ask the learner to re-express in 3-5 sentences. Max 1 retry per turn. If the retry captures core points, move on immediately.
 
 ## Review Integration
 
@@ -98,6 +100,8 @@ Update `memory/MEMORY.md`:
 3. **Score History**: append today's row. Keep only the most recent 14 days.
 4. **Top Issue Tracker**: update if a new top issue emerged.
 5. **Learner Profile**: update if new weakness patterns or improvements were observed.
+6. **Expression Upgrades → Knowledge Points Queue**: batch-save all Expression Upgrades from the session as Knowledge Points (type: `expression`, schedule: `today`). Deduplicate against existing entries.
+7. **Polished Version → Sentence Templates**: for each round where a reusable sentence pattern was identified (see `references/feedback-format.md` Auto-Extraction rules), add it to the Sentence Templates section with the abstract pattern extracted. These will be picked up by `english-drill` for recall/rewrite/apply practice.
 
 Append a session summary to `memory/HISTORY.md`:
 ```
