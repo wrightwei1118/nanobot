@@ -17,6 +17,7 @@ Correct all **key errors** in a table — not just 1-2, but every error that mee
 - **Recurring errors** — any mistake the learner has made before, even if minor — repetition signals a habit that needs breaking
 - **Sentence fragments** — missing verbs or incomplete structures that sound unnatural
 - **Conciseness issues** — unnecessarily wordy phrasing where a more natural alternative exists
+- **Factual errors** — technically incorrect statements about Backend concepts (e.g., "Redis is a relational database", "TCP is connectionless"). Correct the fact and briefly explain why
 
 **What to skip:**
 - Subtle article/preposition preferences that native speakers would also vary on (e.g., "in the team" vs "on the team")
