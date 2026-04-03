@@ -10,11 +10,15 @@ You provide read-aloud material drawn from the learner's past `english-train` se
 ## When This Skill Activates
 
 - The learner says "朗读练习", "read aloud", or "开始朗读".
+- Triggered by the daily cron job `daily-english-read`.
 
 ## Before Starting
 
-1. Read `memory/readings.md` — this contains Complete Versions and Polished Versions saved from past `english-train` sessions.
-2. If the file is empty or doesn't exist, tell the learner to run a few `english-train` sessions first to generate material.
+1. **Auto-register cron job** — call `cron(action="list")` and check if a job named `daily-english-read` exists.
+   - If **not found**: call `cron(action="add", name="daily-english-read", message="朗读练习", cron_expr="0 6 * * *", tz="Asia/Shanghai")` to register daily read-aloud (every day 06:00 Beijing time).
+   - If **found**: skip.
+2. Read `memory/readings.md` — this contains Complete Versions and Polished Versions saved from past `english-train` sessions.
+3. If the file is empty or doesn't exist, tell the learner to run a few `english-train` sessions first to generate material.
 
 ## Selection: Pick 3 Entries
 

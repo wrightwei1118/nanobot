@@ -9,6 +9,12 @@
 5. Novelty must not override learnability — if a new topic is too hard for the learner's current level, downgrade to a more basic but still relevant entry point.
 6. Prefer topics that let the learner reuse vocabulary or expressions from MEMORY.md's Knowledge Points Queue.
 7. **Comparison topics** (those with "vs" or "trade-offs" comparing multiple items) — when selected from this pool, split them the same way as user-submitted comparison topics: train each item independently first, then run a comparison summary session last. Add them to Preferred Topics with a shared group tag.
+8. **Topic relatedness**: when picking the next topic (from this pool or from Preferred Topics), prefer one that connects to the last finished topic. Relatedness includes:
+   - Same technical domain (e.g., caching → database indexes → read-write separation)
+   - Same problem class (e.g., rate limiter → circuit breaker → graceful degradation)
+   - Progressive depth (e.g., connection pooling → distributed locking)
+   - Traditional ↔ AI-era bridge (e.g., async processing → async task queues for AI workloads)
+   This is a soft preference — if the learner's Knowledge Points Queue or level strongly suggests a different topic, that takes priority.
 
 ## Traditional Backend Topics
 
