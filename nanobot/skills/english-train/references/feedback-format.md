@@ -45,6 +45,7 @@ Rewrite the learner's **full response** with all errors corrected. Bold the chan
 
 Rules:
 - Only fix errors — preserve the learner's original structure, logic flow, and expression habits.
+- If Layer 1 identified factual errors, the Complete Version must also reflect the corrected facts — do not preserve incorrect technical statements.
 - This shows the learner what their response would sound like with just the mistakes fixed.
 
 ---
@@ -63,6 +64,7 @@ Rules:
 - Focus on Backend-specific technical phrasing.
 - Each upgrade should be a phrase or short expression, not a full rewrite.
 - Cover areas like: architecture trade-off phrasing, technical precision, AI Backend expressions.
+- All upgraded expressions must be technically accurate — never introduce factual errors in pursuit of more professional phrasing.
 
 ---
 
