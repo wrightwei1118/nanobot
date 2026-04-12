@@ -156,7 +156,7 @@ Append to `memory/HISTORY.md`:
 
 ## Week 1: Assessment Mode
 
-During the first week (`training_day_counter` <= 7 in MEMORY.md), the primary goal is **assessment over training**.
+During the first week (today's date minus `training_start_date` <= 7 calendar days in MEMORY.md), the primary goal is **assessment over training**.
 
 From the learner's submissions and any lightweight trial sessions, build the Learner Profile by inferring:
 

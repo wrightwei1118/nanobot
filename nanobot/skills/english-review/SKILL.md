@@ -10,7 +10,7 @@ You generate a comprehensive weekly review of the learner's Backend English spea
 ## When This Skill Activates
 
 - The learner says "本周复盘" or "weekly review."
-- The `training_day_counter` in MEMORY.md shows 7 sessions have passed since `last_review_day`.
+- 7 or more calendar days have passed since `last_review_date` in MEMORY.md.
 
 ## Data Collection
 
@@ -22,7 +22,7 @@ Before generating the report, gather all necessary data:
    - Learner Profile
    - Top Issue Tracker
    - Knowledge Points Queue
-   - Training State (`training_day_counter`, `current_week`, `last_review_day`)
+   - Training State (`session_counter`, `training_start_date`, `last_review_date`)
 
 2. **From `memory/HISTORY.md`**:
    - Search for all `english-train` entries since the last review date.
@@ -83,11 +83,11 @@ After generating the report, update `memory/MEMORY.md`:
 
 1. **Learner Profile**: refresh based on the week's observations. Update weakness descriptions, note improvements, adjust level if warranted.
 2. **Knowledge Points Queue**: reset priorities — promote `queued` items that align with next week's topics to `today`; move practiced items to `review` status.
-3. **Training State**: update `last_review_day` to current `training_day_counter`, increment `current_week`.
-4. **Score History**: archive rows older than 14 days — move them to `memory/HISTORY.md` with a `[YYYY-MM-DD] score-archive` tag.
+3. **Training State**: update `last_review_date` to today's date. Week number is calculated as `(today - training_start_date).days // 7 + 1` — do not store it separately.
+4. **Score History**: archive rows older than 14 calendar days — move them to `memory/HISTORY.md` with a `[YYYY-MM-DD] score-archive` tag.
 5. **Top Issue Tracker**: re-evaluate the current top issue based on this week's data. If the issue has improved, promote a new one.
 
 Append the review summary to `memory/HISTORY.md`:
 ```
-[YYYY-MM-DD HH:MM] english-review | Week N | Avg: F[x] G[x] T[x] | Top improvement: [area] | Focus next week: [topic/grammar point]
+[YYYY-MM-DD HH:MM] english-review | Week N (Sessions X-Y) | Avg: F[x] G[x] T[x] | Top improvement: [area] | Focus next week: [topic/grammar point]
 ```
