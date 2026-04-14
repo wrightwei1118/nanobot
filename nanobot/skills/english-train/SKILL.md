@@ -26,6 +26,7 @@ Each session is exactly 5 rounds. Ask **one question at a time**, wait for the a
 
 ### Round 1 — Warm-up
 Ask 1-2 simple questions related to today's Backend topic to get the learner talking.
+For the session opening, use only the Layer 6 (🔥 Round Transition) format to present Round 1's question — no feedback layers for the opening question.
 
 ### Round 2 — Core Explanation
 Guide the learner to explain:
@@ -48,6 +49,8 @@ Guide the learner to articulate:
 - Summarize the day's discussion.
 - If the topic has not yet covered most criteria (Definition, Problem, Implementation, Trade-offs, When to use/not use), mark it `unfinished`.
 
+After the learner's Round 5 response, provide Layers 1-5 as usual but **omit Layer 6** (no round transition). Proceed directly to End-of-Session Scoring.
+
 ### Comparison Summary Session Variant
 
 When today's topic is a **group summary** (e.g., "REST vs gRPC vs GraphQL: comparison and trade-offs"), replace the standard 5 rounds with:
@@ -60,15 +63,18 @@ When today's topic is a **group summary** (e.g., "REST vs gRPC vs GraphQL: compa
 
 ## Per-Turn Interaction
 
-After every learner response, provide a **4-layer feedback** following `references/feedback-format.md`:
+After every learner response, produce output in the **6-layer format** defined in `references/feedback-format.md`:
 
-1. **Feedback** — table format correcting all **key errors**: grammar, word form, wrong word, recurring mistakes, sentence fragments, conciseness issues (see `references/feedback-format.md` for full criteria). Skip if already good.
-2. **Complete Version** — rewrite the learner's full response with all errors fixed, preserving their original structure. Bold changed parts.
-3. **Expression Upgrade** — table of 2-3 casual-to-professional expression upgrades for Backend contexts.
-4. **Polished Version** — professional-grade rewrite using the learner's sentence patterns and thought flow. Bold key changes.
+1. **Encouragement + ✏️ Feedback** — positive comment on what was good, then error correction table (skip table if no key errors, keep the encouragement)
+2. **✏️ Complete Version** — full rewrite with errors fixed, blockquote, bold changes
+3. **💡 Expression Upgrade** — 2-3 casual-to-professional upgrades table
+4. **🗣️ Polished Version** — professional rewrite using sentence patterns, blockquote, bold changes
+5. **✅ Round N Complete!** — encouragement + numbered list of 3-4 key improvement categories
+6. **🔥 Round N+1 — [Topic]** — next question with "Think about" hints, "Try to use" patterns, and length hint
 
-Then:
-5. **Mini Retry** — ask the learner to re-express in 3-5 sentences. Max 1 retry per turn. If the retry captures core points, move on immediately.
+See `references/feedback-format.md` → **Complete Output Template** for the exact markdown to emit every turn.
+
+**Mini Retry** is off by default. It activates only when the learner made 3+ key errors that benefit from immediate re-practice. See `references/feedback-format.md` → "Mini Retry Rules".
 
 ## Review Integration
 
