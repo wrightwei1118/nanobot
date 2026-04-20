@@ -239,13 +239,13 @@ class MemoryStore:
                 pass
         # Fallback: read last line's cursor from the JSONL file.
         last = self._read_last_entry()
-        if last:
+        if last and last.get("cursor"):
             return last["cursor"] + 1
         return 1
 
     def read_unprocessed_history(self, since_cursor: int) -> list[dict[str, Any]]:
         """Return history entries with cursor > *since_cursor*."""
-        return [e for e in self._read_entries() if e["cursor"] > since_cursor]
+        return [e for e in self._read_entries() if e.get("cursor", 0) > since_cursor]
 
     def compact_history(self) -> None:
         """Drop oldest entries if the file exceeds *max_history_entries*."""
@@ -416,7 +416,12 @@ class Consolidator:
                 return idx
         return None
 
-    def estimate_session_prompt_tokens(self, session: Session) -> tuple[int, str]:
+    def estimate_session_prompt_tokens(
+        self,
+        session: Session,
+        *,
+        session_summary: str | None = None,
+    ) -> tuple[int, str]:
         """Estimate current prompt size for the normal session history view."""
         history = session.get_history(max_messages=0)
         channel, chat_id = (session.key.split(":", 1) if ":" in session.key else (None, None))
@@ -425,6 +430,7 @@ class Consolidator:
             current_message="[token-probe]",
             channel=channel,
             chat_id=chat_id,
+            session_summary=session_summary,
         )
         return estimate_prompt_tokens_chain(
             self.provider,
@@ -457,6 +463,8 @@ class Consolidator:
                 tools=None,
                 tool_choice=None,
             )
+            if response.finish_reason == "error":
+                raise RuntimeError(f"LLM returned error: {response.content}")
             summary = response.content or "[no summary]"
             self.store.append_history(summary)
             return summary
@@ -465,7 +473,12 @@ class Consolidator:
             self.store.raw_archive(messages)
             return None
 
-    async def maybe_consolidate_by_tokens(self, session: Session) -> None:
+    async def maybe_consolidate_by_tokens(
+        self,
+        session: Session,
+        *,
+        session_summary: str | None = None,
+    ) -> None:
         """Loop: archive old messages until prompt fits within safe budget.
 
         The budget reserves space for completion tokens and a safety buffer
@@ -479,7 +492,10 @@ class Consolidator:
             budget = self.context_window_tokens - self.max_completion_tokens - self._SAFETY_BUFFER
             target = budget // 2
             try:
-                estimated, source = self.estimate_session_prompt_tokens(session)
+                estimated, source = self.estimate_session_prompt_tokens(
+                    session,
+                    session_summary=session_summary,
+                )
             except Exception:
                 logger.exception("Token estimation failed for {}", session.key)
                 estimated, source = 0, "error"
@@ -497,9 +513,10 @@ class Consolidator:
                 )
                 return
 
+            last_summary = None
             for round_num in range(self._MAX_CONSOLIDATION_ROUNDS):
                 if estimated <= target:
-                    return
+                    break
 
                 boundary = self.pick_consolidation_boundary(session, max(1, estimated - target))
                 if boundary is None:
@@ -508,7 +525,7 @@ class Consolidator:
                         session.key,
                         round_num,
                     )
-                    return
+                    break
 
                 end_idx = boundary[0]
                 end_idx = self._cap_consolidation_boundary(session, end_idx)
@@ -518,11 +535,11 @@ class Consolidator:
                         session.key,
                         round_num,
                     )
-                    return
+                    break
 
                 chunk = session.messages[session.last_consolidated:end_idx]
                 if not chunk:
-                    return
+                    break
 
                 logger.info(
                     "Token consolidation round {} for {}: {}/{} via {}, chunk={} msgs",
@@ -533,23 +550,46 @@ class Consolidator:
                     source,
                     len(chunk),
                 )
-                if not await self.archive(chunk):
-                    return
+                summary = await self.archive(chunk)
+                if summary:
+                    last_summary = summary
+                else:
+                    break
                 session.last_consolidated = end_idx
                 self.sessions.save(session)
 
                 try:
-                    estimated, source = self.estimate_session_prompt_tokens(session)
+                    estimated, source = self.estimate_session_prompt_tokens(
+                        session,
+                        session_summary=session_summary,
+                    )
                 except Exception:
                     logger.exception("Token estimation failed for {}", session.key)
                     estimated, source = 0, "error"
                 if estimated <= 0:
-                    return
+                    break
+
+            # Persist the last summary to session metadata so it can be injected
+            # into the runtime context on the next prepare_session() call, aligning
+            # the summary injection strategy with AutoCompact._archive().
+            if last_summary and last_summary != "(nothing)":
+                session.metadata["_last_summary"] = {
+                    "text": last_summary,
+                    "last_active": session.updated_at.isoformat(),
+                }
+                self.sessions.save(session)
 
 
 # ---------------------------------------------------------------------------
 # Dream — heavyweight cron-scheduled memory consolidation
 # ---------------------------------------------------------------------------
+
+
+# Single source of truth for the staleness threshold used in _annotate_with_ages
+# *and* in the Phase 1 prompt template (passed as `stale_threshold_days`).
+# Keep code and prompt aligned — if you bump this, the LLM's instruction string
+# updates automatically.
+_STALE_THRESHOLD_DAYS = 14
 
 
 class Dream:
@@ -568,6 +608,7 @@ class Dream:
         max_batch_size: int = 20,
         max_iterations: int = 10,
         max_tool_result_chars: int = 16_000,
+        annotate_line_ages: bool = True,
     ):
         self.store = store
         self.provider = provider
@@ -575,6 +616,10 @@ class Dream:
         self.max_batch_size = max_batch_size
         self.max_iterations = max_iterations
         self.max_tool_result_chars = max_tool_result_chars
+        # Kill switch for the git-blame-based per-line age annotation in Phase 1.
+        # Default True keeps the #3212 behavior; set False to feed MEMORY.md raw
+        # (e.g. if a specific LLM reacts poorly to the `← Nd` suffix).
+        self.annotate_line_ages = annotate_line_ages
         self._runner = AgentRunner(provider)
         self._tools = self._build_tools()
 
@@ -582,18 +627,106 @@ class Dream:
 
     def _build_tools(self) -> ToolRegistry:
         """Build a minimal tool registry for the Dream agent."""
-        from nanobot.agent.tools.filesystem import EditFileTool, ReadFileTool
+        from nanobot.agent.skills import BUILTIN_SKILLS_DIR
+        from nanobot.agent.tools.filesystem import EditFileTool, ReadFileTool, WriteFileTool
 
         tools = ToolRegistry()
         workspace = self.store.workspace
-        tools.register(ReadFileTool(workspace=workspace, allowed_dir=workspace))
+        # Allow reading builtin skills for reference during skill creation
+        extra_read = [BUILTIN_SKILLS_DIR] if BUILTIN_SKILLS_DIR.exists() else None
+        tools.register(ReadFileTool(
+            workspace=workspace,
+            allowed_dir=workspace,
+            extra_allowed_dirs=extra_read,
+        ))
         tools.register(EditFileTool(workspace=workspace, allowed_dir=workspace))
+        # write_file resolves relative paths from workspace root, but can only
+        # write under skills/ so the prompt can safely use skills/<name>/SKILL.md.
+        skills_dir = workspace / "skills"
+        skills_dir.mkdir(parents=True, exist_ok=True)
+        tools.register(WriteFileTool(workspace=workspace, allowed_dir=skills_dir))
         return tools
+
+    # -- skill listing --------------------------------------------------------
+
+    def _list_existing_skills(self) -> list[str]:
+        """List existing skills as 'name — description' for dedup context."""
+        import re as _re
+
+        from nanobot.agent.skills import BUILTIN_SKILLS_DIR
+
+        _DESC_RE = _re.compile(r"^description:\s*(.+)$", _re.MULTILINE | _re.IGNORECASE)
+        entries: dict[str, str] = {}
+        for base in (self.store.workspace / "skills", BUILTIN_SKILLS_DIR):
+            if not base.exists():
+                continue
+            for d in base.iterdir():
+                if not d.is_dir():
+                    continue
+                skill_md = d / "SKILL.md"
+                if not skill_md.exists():
+                    continue
+                # Prefer workspace skills over builtin (same name)
+                if d.name in entries and base == BUILTIN_SKILLS_DIR:
+                    continue
+                content = skill_md.read_text(encoding="utf-8")[:500]
+                m = _DESC_RE.search(content)
+                desc = m.group(1).strip() if m else "(no description)"
+                entries[d.name] = desc
+        return [f"{name} — {desc}" for name, desc in sorted(entries.items())]
 
     # -- main entry ----------------------------------------------------------
 
+    def _annotate_with_ages(self, content: str) -> str:
+        """Append per-line age suffixes to MEMORY.md content.
+
+        Each non-blank line whose age exceeds ``_STALE_THRESHOLD_DAYS`` gets a
+        suffix like ``← 30d`` indicating days since last modification.
+        Returns the original content unchanged if git is unavailable,
+        annotate fails, or the line count doesn't match the age count
+        (which can happen with an uncommitted working-tree edit — better to
+        skip annotation than to tag the wrong line).
+        SOUL.md and USER.md are never annotated.
+        """
+        file_path = "memory/MEMORY.md"
+        try:
+            ages = self.store.git.line_ages(file_path)
+        except Exception:
+            logger.debug("line_ages failed for {}", file_path)
+            return content
+        if not ages:
+            return content
+
+        had_trailing = content.endswith("\n")
+        lines = content.splitlines()
+        # If HEAD-blob line count disagrees with the working-tree content we
+        # received, ages would be assigned to the wrong lines — skip entirely
+        # and feed the LLM un-annotated content rather than misleading data.
+        if len(lines) != len(ages):
+            logger.debug(
+                "line_ages length mismatch for {} (lines={}, ages={}); skipping annotation",
+                file_path, len(lines), len(ages),
+            )
+            return content
+
+        annotated: list[str] = []
+        for line, age in zip(lines, ages):
+            if not line.strip():
+                annotated.append(line)
+                continue
+            if age.age_days > _STALE_THRESHOLD_DAYS:
+                annotated.append(f"{line}  \u2190 {age.age_days}d")
+            else:
+                annotated.append(line)
+        result = "\n".join(annotated)
+        if had_trailing:
+            result += "\n"
+        return result
+
     async def run(self) -> bool:
         """Process unprocessed history entries. Returns True if work was done."""
+        from nanobot.agent.skills import BUILTIN_SKILLS_DIR
+
         last_cursor = self.store.get_last_dream_cursor()
         entries = self.store.read_unprocessed_history(since_cursor=last_cursor)
         if not entries:
@@ -610,11 +743,17 @@ class Dream:
             f"[{e['timestamp']}] {e['content']}" for e in batch
         )
 
-        # Current file contents
+        # Current file contents + per-line age annotations (MEMORY.md only)
         current_date = datetime.now().strftime("%Y-%m-%d")
-        current_memory = self.store.read_memory() or "(empty)"
+        raw_memory = self.store.read_memory() or "(empty)"
+        current_memory = (
+            self._annotate_with_ages(raw_memory)
+            if self.annotate_line_ages
+            else raw_memory
+        )
         current_soul = self.store.read_soul() or "(empty)"
         current_user = self.store.read_user() or "(empty)"
+
         file_context = (
             f"## Current Date\n{current_date}\n\n"
             f"## Current MEMORY.md ({len(current_memory)} chars)\n{current_memory}\n\n"
@@ -622,7 +761,7 @@ class Dream:
             f"## Current USER.md ({len(current_user)} chars)\n{current_user}"
         )
 
-        # Phase 1: Analyze
+        # Phase 1: Analyze (no skills list — dedup is Phase 2's job)
         phase1_prompt = (
             f"## Conversation History\n{history_text}\n\n{file_context}"
         )
@@ -633,7 +772,11 @@ class Dream:
                 messages=[
                     {
                         "role": "system",
-                        "content": render_template("agent/dream_phase1.md", strip=True),
+                        "content": render_template(
+                            "agent/dream_phase1.md",
+                            strip=True,
+                            stale_threshold_days=_STALE_THRESHOLD_DAYS,
+                        ),
                     },
                     {"role": "user", "content": phase1_prompt},
                 ],
@@ -647,13 +790,25 @@ class Dream:
             return False
 
         # Phase 2: Delegate to AgentRunner with read_file / edit_file
-        phase2_prompt = f"## Analysis Result\n{analysis}\n\n{file_context}"
+        existing_skills = self._list_existing_skills()
+        skills_section = ""
+        if existing_skills:
+            skills_section = (
+                "\n\n## Existing Skills\n"
+                + "\n".join(f"- {s}" for s in existing_skills)
+            )
+        phase2_prompt = f"## Analysis Result\n{analysis}\n\n{file_context}{skills_section}"
 
         tools = self._tools
+        skill_creator_path = BUILTIN_SKILLS_DIR / "skill-creator" / "SKILL.md"
         messages: list[dict[str, Any]] = [
             {
                 "role": "system",
-                "content": render_template("agent/dream_phase2.md", strip=True),
+                "content": render_template(
+                    "agent/dream_phase2.md",
+                    strip=True,
+                    skill_creator_path=str(skill_creator_path),
+                ),
             },
             {"role": "user", "content": phase2_prompt},
         ]
@@ -704,7 +859,9 @@ class Dream:
         # Git auto-commit (only when there are actual changes)
         if changelog and self.store.git.is_initialized():
             ts = batch[-1]["timestamp"]
-            sha = self.store.git.auto_commit(f"dream: {ts}, {len(changelog)} change(s)")
+            summary = f"dream: {ts}, {len(changelog)} change(s)"
+            commit_msg = f"{summary}\n\n{analysis.strip()}"
+            sha = self.store.git.auto_commit(commit_msg)
             if sha:
                 logger.info("Dream commit: {}", sha)
 
