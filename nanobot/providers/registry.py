@@ -34,7 +34,7 @@ class ProviderSpec:
     display_name: str = ""  # shown in `nanobot status`
 
     # which provider implementation to use
-    # "openai_compat" | "anthropic" | "azure_openai" | "openai_codex" | "github_copilot"
+    # "openai_compat" | "anthropic" | "azure_openai" | "openai_codex" | "github_copilot" | "bedrock"
     backend: str = "openai_compat"
 
     # extra env vars, e.g. (("ZHIPUAI_API_KEY", "{api_key}"),)
@@ -105,6 +105,29 @@ PROVIDERS: tuple[ProviderSpec, ...] = (
         backend="azure_openai",
         is_direct=True,
     ),
+    # === AWS Bedrock (native Converse API via bedrock-runtime) =============
+    ProviderSpec(
+        name="bedrock",
+        keywords=(
+            "bedrock",
+            "anthropic.claude",
+            "amazon.nova",
+            "meta.",
+            "mistral.",
+            "cohere.",
+            "qwen.",
+            "deepseek.",
+            "openai.gpt-oss",
+            "ai21.",
+            "moonshot.",
+            "writer.",
+            "zai.",
+        ),
+        env_key="AWS_BEARER_TOKEN_BEDROCK",
+        display_name="AWS Bedrock",
+        backend="bedrock",
+        is_direct=True,
+    ),
     # === Gateways (detected by api_key / api_base, not model name) =========
     # Gateways can route any model, so they win in fallback.
     # OpenRouter: global gateway, keys start with "sk-or-"
@@ -119,6 +142,18 @@ PROVIDERS: tuple[ProviderSpec, ...] = (
         detect_by_base_keyword="openrouter",
         default_api_base="https://openrouter.ai/api/v1",
         supports_prompt_caching=True,
+    ),
+    # Hugging Face Inference Providers: OpenAI-compatible router for chat models.
+    ProviderSpec(
+        name="huggingface",
+        keywords=("huggingface", "hugging-face"),
+        env_key="HF_TOKEN",
+        display_name="Hugging Face",
+        backend="openai_compat",
+        is_gateway=True,
+        detect_by_key_prefix="hf_",
+        detect_by_base_keyword="huggingface",
+        default_api_base="https://router.huggingface.co/v1",
     ),
     # AiHubMix: global gateway, OpenAI-compatible interface.
     # strip_model_prefix=True: doesn't understand "anthropic/claude-3",
@@ -255,7 +290,7 @@ PROVIDERS: tuple[ProviderSpec, ...] = (
     # Gemini: Google's OpenAI-compatible endpoint
     ProviderSpec(
         name="gemini",
-        keywords=("gemini",),
+        keywords=("gemini", "gemma"),
         env_key="GEMINI_API_KEY",
         display_name="Gemini",
         backend="openai_compat",
