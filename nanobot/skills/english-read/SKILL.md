@@ -52,9 +52,11 @@ This skill tracks push/confirmation state in `memory/read-state.json`:
 Before selecting entries, read `memory/read-state.json`:
 
 - **If file exists AND `confirmed == false`**:
-  - **If triggered by cron**: re-push the **same entries** listed in `last_push_entries`. Look them up in `memory/readings.md` by date + topic. Prepend a reminder: "上次推送的内容还没确认，再来一遍 👇". After presenting, keep `confirmed: false` (still waiting for confirmation).
+  - **If triggered by cron**: re-push the **same entries** listed in `last_push_entries`. Look them up in `memory/readings.md` by date + topic. Prepend a reminder: "上次推送的内容还没确认，再来一遍 👇". After presenting, keep `confirmed: false` (still waiting for confirmation). **Then execute Post-Session — Mandatory Write + Verify** (re-write the same state with today's `last_push_date`, read back, append HISTORY, emit block).
   - **If triggered manually** (learner said "朗读练习"): treat as implicit confirmation of the previous push — set `confirmed: true`, then proceed to select **new** entries normally.
 - **If file doesn't exist OR `confirmed == true`**: select new entries normally (see Selection below).
+
+> ⚠️ **Every push path ends with Post-Session verification.** No exceptions. Cron re-pushes, manual pushes, new-selection pushes — all must Read-back and emit the block. If you presented content but didn't verify + emit, the session is incomplete.
 
 ## Selection: Pick 3 Entries
 
@@ -93,12 +95,14 @@ Rules:
 
 ## Post-Session — Mandatory Write + Verify
 
-Execute in exact order. Do NOT skip steps. Do NOT reorder.
+Applies to **every push path**: new selection, cron re-push, and manual re-push. Execute in exact order. Do NOT skip steps. Do NOT reorder.
 
-1. **Write** `memory/read-state.json` with the entries just presented and `confirmed: false`.
+1. **Write** `memory/read-state.json`:
+   - New selection → entries just presented, `last_push_date: today`, `confirmed: false`.
+   - Cron re-push → same `last_push_entries` as before, `last_push_date: today`, `confirmed: false`.
 2. **Append** to `memory/HISTORY.md`:
    ```
-   [YYYY-MM-DD HH:MM] english-read | Entries read: 3 | Dates: [date1], [date2], [date3]
+   [YYYY-MM-DD HH:MM] english-read | Entries read: 3 | Dates: [date1], [date2], [date3] | Mode: [new|re-push]
    ```
 3. **Read back** `memory/read-state.json` — capture full JSON content.
 4. **Read back** the last line of `memory/HISTORY.md` — capture the exact timestamped line.
@@ -120,5 +124,5 @@ This block is REQUIRED as the last content of every session (both read-aloud and
 
 **Rules:**
 - For confirmation flow (收到/已读): `entries` line can be omitted, `confirmed` must be `true`, `history` line can be omitted (no HISTORY append on confirmation).
-- For read-aloud session: all 4 fields required.
+- For **any push flow** (new selection OR cron re-push OR manual re-push): all 4 fields required, `confirmed: false`, and `history` line must reflect the line just appended.
 - If any field shows `<...>` placeholder or is empty, the session is incomplete — go back to step 1. Do NOT fabricate.
