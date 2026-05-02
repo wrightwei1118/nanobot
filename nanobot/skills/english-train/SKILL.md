@@ -144,7 +144,7 @@ Update `memory/MEMORY.md`:
    **Polished Version:**
    [text]
    ```
-   Keep only entries from the most recent 30 calendar days. Delete older ones to avoid file bloat.
+   Keep only entries from the most recent 60 calendar days. Delete older ones to avoid file bloat. (60 days is sized for `english-read`'s 5-box Leitner ladder: 0+3+7+14+30=54 days to graduate, plus buffer for missed confirmations.)
 
 Append a session summary to `memory/HISTORY.md`:
 ```
