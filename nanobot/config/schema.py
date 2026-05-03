@@ -151,6 +151,7 @@ class ProvidersConfig(Base):
     mistral: ProviderConfig = Field(default_factory=ProviderConfig)
     stepfun: ProviderConfig = Field(default_factory=ProviderConfig)  # Step Fun (阶跃星辰)
     xiaomi_mimo: ProviderConfig = Field(default_factory=ProviderConfig)  # Xiaomi MIMO (小米)
+    longcat: ProviderConfig = Field(default_factory=ProviderConfig)  # LongCat
     aihubmix: ProviderConfig = Field(default_factory=ProviderConfig)  # AiHubMix API gateway
     siliconflow: ProviderConfig = Field(default_factory=ProviderConfig)  # SiliconFlow (硅基流动)
     volcengine: ProviderConfig = Field(default_factory=ProviderConfig)  # VolcEngine (火山引擎)
@@ -222,6 +223,8 @@ class ExecToolConfig(Base):
     path_append: str = ""
     sandbox: str = ""  # sandbox backend: "" (none) or "bwrap"
     allowed_env_keys: list[str] = Field(default_factory=list)  # Env var names to pass through to subprocess (e.g. ["GOPATH", "JAVA_HOME"])
+    allow_patterns: list[str] = Field(default_factory=list)  # Regex patterns that bypass deny_patterns (e.g. [r"rm\s+-rf\s+/tmp/"])
+    deny_patterns: list[str] = Field(default_factory=list)  # Extra regex patterns to block (appended to built-in list)
 
 class MCPServerConfig(Base):
     """MCP server connection configuration (stdio or HTTP)."""
