@@ -47,5 +47,6 @@ Under `$NANOBOT_READ_DATA_DIR` (default `/root/.nanobot/workspace/memory/`):
 
 - 5 active boxes with intervals 1 / 3 / 7 / 14 / 30 days. Box 6 = graduated (never picked again).
 - New entry → `box:1, due:today`. Each confirmed push → `box++, due = today + INTERVALS[box]`.
-- Daily cap = 3 entries. Ranking: higher box first, oldest-due first within the same box — protects near-graduation items from starvation when low-box entries pile up.
+- Daily cap = 3 entries by default; bumped to 4 whenever any entry is strictly overdue (`due < today`), with up to 2 of those 4 slots reserved for overdue items (picked by `(-box, due)` and placed first). Remaining slots fill from the rest of the due pool by the same ranking.
+- Ranking: higher box first, oldest-due first within the same box — protects near-graduation items from starvation when low-box entries pile up.
 - Graduation path: 5 confirmations over ~54 days. `english-train` must retain entries at least 60 days so Box 5 items don't TTL-out before graduating.

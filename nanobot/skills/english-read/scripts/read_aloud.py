@@ -37,7 +37,9 @@ HISTORY = DATA_DIR / "HISTORY.md"
 # Box 5 confirmed → graduated (never picked again).
 INTERVALS = {1: 1, 2: 3, 3: 7, 4: 14, 5: 30}
 GRADUATED = 6
-DAILY_CAP = 3
+DEFAULT_CAP = 3       # no overdue → normal daily cap
+EXTENDED_CAP = 4      # any overdue → bump cap to clear backlog faster
+OVERDUE_RESERVED = 2  # up to this many slots filled from overdue pool first
 
 ENTRY_HEADER_RE = re.compile(
     r"^##\s+\[(?P<date>\d{4}-\d{2}-\d{2})\]\s+Topic:\s+(?P<topic>.+?)\s+\|\s+Round\s+(?P<round>\d+):\s+(?P<round_topic>.+?)\s*$"
@@ -182,10 +184,29 @@ def rank_due(due: list[tuple[Entry, int, str]]) -> list[Entry]:
 
 
 def select_entries(entries: list[Entry], sidecar: dict[str, dict], today: date) -> list[Entry]:
+    """
+    Selection rules:
+      - 0 overdue (all due items have due == today) → return rank_due(due)[:DEFAULT_CAP]
+      - ≥1 overdue (due < today) → return up to EXTENDED_CAP entries:
+          * First slots: up to OVERDUE_RESERVED entries picked from the overdue pool,
+            ranked by (-box, due). These appear FIRST in the output.
+          * Remaining slots: filled from (non-picked overdue ∪ today-due),
+            ranked by (-box, due).
+      - If fewer than EXTENDED_CAP candidates exist in total, return what you have.
+    """
     due = due_entries(entries, sidecar, today)
     if not due:
         return []
-    return rank_due(due)[:DAILY_CAP]
+    today_iso = today.isoformat()
+    overdue = [row for row in due if row[2] < today_iso]
+    if not overdue:
+        return rank_due(due)[:DEFAULT_CAP]
+
+    priority = rank_due(overdue)[:OVERDUE_RESERVED]
+    picked_keys = {e.key for e in priority}
+    remaining = [row for row in due if row[0].key not in picked_keys]
+    fill = rank_due(remaining)[:EXTENDED_CAP - len(priority)]
+    return priority + fill
 
 
 # --------------------------------------------------------------------------
