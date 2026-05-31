@@ -23,6 +23,8 @@ Writing contract (read_aloud.py depends on this — do not break):
   - Key (date, topic, round) is unique; re-submission overwrites (latest wins)
   - TTL: entries older than 60 days (by `date` field) are pruned on every write
     60 >= 54 (Leitner 1+3+7+14+30 graduation window) + buffer for missed confirmations
+  - Valid round numbers depend on the category: 1..6 (e.g. system-design uses 6,
+    other categories may use fewer); the script accepts any positive int from the CLI
 """
 from __future__ import annotations
 

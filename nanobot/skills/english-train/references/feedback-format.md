@@ -24,6 +24,8 @@ Start with a **positive acknowledgement** — one sentence praising what the lea
 - Stylistic choices that are correct but not the coach's personal preference
 - Errors already corrected earlier in the same turn
 
+**Anti-backdoor rule:** Pattern non-use is **not** a key error; never enter a Feedback row whose sole justification is the absence of a recommended template.
+
 Format:
 
 | Your sentence | Better version | Why |
@@ -66,6 +68,7 @@ Rules:
 - Each upgrade should be a phrase or short expression, not a full rewrite.
 - Cover areas like: architecture trade-off phrasing, technical precision, AI Backend expressions.
 - All upgraded expressions must be technically accurate — never introduce factual errors in pursuit of more professional phrasing.
+- **Anti-backdoor rule:** Pattern non-use is **not** a wordiness/professionalism issue; never enter an Expression Upgrade row whose sole justification is the absence of a recommended template.
 
 ---
 
@@ -78,6 +81,7 @@ Rules:
 - Replace casual vocabulary with professional expressions from Layer 3.
 - This shows the learner what "excellent" sounds like while staying close to their own way of thinking.
 - The goal is aspirational — the learner sees how their ideas can be expressed at a higher level.
+- **Intent preservation overrides pattern fit (G4):** preserve the learner's propositional content — same actors, same claims, same scope. If no recommended template fits without distorting the learner's meaning, fall back to a generic professional rewrite rather than bend the meaning to match a template.
 
 ---
 
@@ -100,6 +104,7 @@ Rules:
 - Each item names the error category (e.g., "Acronym spelling", "Verb forms", "Technical phrasing"), shows the correct form, and the original error in parentheses.
 - Keep the list concise — one line per item, no full sentences.
 - If the learner's response was already strong and Layer 1 table was skipped, list 2-3 expression upgrades from Layer 3 instead.
+- **(optional)** A single neutral, informational line about template usage may be appended after the numbered list — e.g., `Suggested patterns this round: used / partially used / not used — all fine.` It is informational only and must **not** feed into any score.
 
 ---
 
@@ -127,10 +132,15 @@ Format:
 Rules:
 - {descriptor} is a short label matching the round's theme: "Warm-up", "Core Concept", "Implementation", "Trade-offs", "Final Round!".
 - "Think about" bullets are content hints — concepts, angles, or sub-questions the learner should address.
-- "Try to use" lists 1-2 sentence patterns from the learner's Sentence Templates in MEMORY.md (if available) or from the current session's Polished Version extractions. Format each in backtick code spans.
+- "Try to use" lists at most **1-2 sentence patterns** (hard cap, gate **G3**) drawn from the learner's Sentence Templates in MEMORY.md (if available) or from the current session's Polished Version extractions. Format each in backtick code spans. Every listed template must clear all four gates:
+  - **G1 Round-goal match** — the template's semantic mode (definition / contrast / causal / conditional) matches the round's mode listed in [`topics-context/_categories.md`](topics-context/_categories.md). Inference: `is/are/means` → definition; `whereas/while/in contrast/X but Y` → contrast; `because/since/leads to` → causal; `if X then Y / when X, prefer Y` → conditional / decision.
+  - **G2 Topic-domain match** — the template's example shares **≥1 backend-engineering domain noun** (cache, latency, request_id, MDC, retry, idempotency, partition, etc.) with today's topic string OR with the matched `topics-context/` entry's `applies_to` keywords / key claims, literally or via obvious morphological variant.
+  - **G3 Count cap** — never list more than 2 templates, even if more candidates clear G1 and G2.
+  - **G4 Intent preservation** — applies in Layer 4: preserve the learner's propositional content. (Layer 6 only filters by G1-G3; G4 governs how Layer 4 uses any selected template.)
+  - **This block may be empty or omitted entirely if no template clears all four gates.** A round with zero recommended patterns is a normal, valid outcome — never list a template just to fill the slot.
 - The length hint should match the expected response length (typically 3-5 sentences).
 - For Round 1 (session opening), emit only this Layer 6 block — no Layers 1-5.
-- After Round 5 (final round), omit this layer entirely — proceed to End-of-Session Scoring instead.
+- After the final round of today's category, omit this layer entirely — proceed to End-of-Session Scoring instead.
 
 ---
 
@@ -237,5 +247,5 @@ Below is the exact markdown structure for each turn. Copy this shape for every r
 - Layer 1 table is skipped entirely if the learner's response had no key errors. The positive acknowledgement still appears.
 - Layer 2 (Complete Version) and Layer 4 (Polished Version) use blockquote (`>`) formatting.
 - Layer 5 (Round Complete) always appears, even if Layer 1 table was skipped — in that case, list expression upgrades instead.
-- Layer 6 (Round Transition) is omitted after Round 5 — proceed to End-of-Session Scoring instead.
+- Layer 6 (Round Transition) is omitted after the final round of today's category — proceed to End-of-Session Scoring instead.
 - Bold formatting: in the Feedback table, bold only the changed words in "Better version". In Complete Version and Polished Version, bold all changed/upgraded spans.
