@@ -14,6 +14,7 @@ interface ThreadMessagesProps {
   onLoadEarlier?: () => void;
   cliApps?: CliAppInfo[];
   mcpPresets?: McpPresetInfo[];
+  onOpenFilePreview?: (path: string) => void;
 }
 
 export type DisplayUnit = TurnUnit;
@@ -33,8 +34,13 @@ export function isFinalAssistantSliceBeforeNextUser(
   return true;
 }
 
-export function buildDisplayUnits(messages: UIMessage[]): DisplayUnit[] {
-  return normalizeActivityTimeline(messages);
+export function buildDisplayUnits(
+  messages: UIMessage[],
+  isStreaming = false,
+): DisplayUnit[] {
+  return normalizeActivityTimeline(messages, {
+    preserveTrailingActivity: isStreaming,
+  });
 }
 
 export function assistantCopyFlags(units: DisplayUnit[]): boolean[] {
@@ -61,9 +67,10 @@ export function ThreadMessages({
   onLoadEarlier,
   cliApps = [],
   mcpPresets = [],
+  onOpenFilePreview,
 }: ThreadMessagesProps) {
   const { t } = useTranslation();
-  const units = useMemo(() => buildDisplayUnits(messages), [messages]);
+  const units = useMemo(() => buildDisplayUnits(messages, isStreaming), [isStreaming, messages]);
   const copyFlags = useMemo(() => assistantCopyFlags(units), [units]);
   const liveActivityClusterIndices = useMemo(
     () => isStreaming ? currentActivityClusterIndices(units) : new Set<number>(),
@@ -98,8 +105,17 @@ export function ThreadMessages({
           && next?.type === "message"
           && next.message.role === "assistant";
 
+        const userPromptId =
+          unit.type === "message" && unit.message.role === "user"
+            ? unit.message.id
+            : undefined;
+
         return (
-          <div key={unitKey(unit, index)} className={marginTop}>
+          <div
+            key={unitKey(unit, index)}
+            className={marginTop}
+            data-user-prompt-id={userPromptId}
+          >
             {unit.type === "activity" ? (
               <AgentActivityCluster
                 messages={unit.messages}
@@ -108,6 +124,7 @@ export function ThreadMessages({
                 turnLatencyMs={unit.turnLatencyMs}
                 cliApps={cliApps}
                 mcpPresets={mcpPresets}
+                onOpenFilePreview={onOpenFilePreview}
               />
             ) : (
               <MessageBubble
@@ -119,6 +136,7 @@ export function ThreadMessages({
                 }
                 cliApps={cliApps}
                 mcpPresets={mcpPresets}
+                onOpenFilePreview={onOpenFilePreview}
               />
             )}
           </div>
@@ -137,10 +155,6 @@ function currentActivityClusterIndices(units: DisplayUnit[]): Set<number> {
       if (!markedCurrentActivity) {
         indices.add(i);
         markedCurrentActivity = true;
-        continue;
-      }
-      if (activityHasLiveFileEdit(unit)) {
-        indices.add(i);
       }
       continue;
     }
@@ -148,13 +162,6 @@ function currentActivityClusterIndices(units: DisplayUnit[]): Set<number> {
     if (unit.message.role === "user") break;
   }
   return indices;
-}
-
-function activityHasLiveFileEdit(unit: Extract<DisplayUnit, { type: "activity" }>): boolean {
-  return unit.messages.some((message) => (
-    message.kind === "trace"
-    && message.fileEdits?.some((edit) => edit.status === "editing" || edit.pending || !edit.path)
-  ));
 }
 
 function unitKey(unit: DisplayUnit, index: number): string {
