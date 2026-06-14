@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
 
 from loguru import logger
+from pydantic.alias_generators import to_snake
 
 from nanobot.providers.base import (
     LLMProvider,
@@ -91,6 +92,18 @@ _MODEL_THINKING_STYLES: dict[str, str] = {
 
 def _model_slug(model_name: str) -> str:
     return model_name.lower().rsplit("/", 1)[-1]
+
+
+def _provider_prefix_key(name: str) -> str:
+    return to_snake(name.replace("-", "_")).lower()
+
+
+def _requires_max_completion_tokens(model_name: str) -> bool:
+    """Return True for models that reject ``max_tokens`` (GPT-5 family, o-series)."""
+    slug = _model_slug(model_name)
+    return "gpt-5" in slug or any(
+        slug == p or slug.startswith((p + "-", p + ".")) for p in ("o1", "o3", "o4")
+    )
 
 
 def _model_thinking_style(model_name: str) -> str:
@@ -584,6 +597,22 @@ class OpenAICompatProvider(LLMProvider):
     # Build kwargs
     # ------------------------------------------------------------------
 
+    def _request_model_name(self, model_name: str) -> str:
+        spec = self._spec
+        if not spec or "/" not in model_name:
+            return model_name
+        if spec.strip_model_prefix:
+            return model_name.split("/")[-1]
+
+        route_prefixes = getattr(spec, "strip_model_prefixes", ())
+        if not isinstance(route_prefixes, tuple) or not route_prefixes:
+            return model_name
+        model_prefix, routed_model = model_name.split("/", 1)
+        model_prefix_key = _provider_prefix_key(model_prefix)
+        if any(_provider_prefix_key(prefix) == model_prefix_key for prefix in route_prefixes):
+            return routed_model
+        return model_name
+
     @staticmethod
     def _supports_temperature(
         model_name: str,
@@ -617,8 +646,7 @@ class OpenAICompatProvider(LLMProvider):
             if any(model_name.lower().startswith(k) for k in ("anthropic/", "claude")):
                 messages, tools = self._apply_cache_control(messages, tools)
 
-        if spec and spec.strip_model_prefix:
-            model_name = model_name.split("/")[-1]
+        model_name = self._request_model_name(model_name)
 
         kwargs: dict[str, Any] = {
             "model": model_name,
@@ -630,7 +658,9 @@ class OpenAICompatProvider(LLMProvider):
         if self._supports_temperature(model_name, reasoning_effort):
             kwargs["temperature"] = temperature
 
-        if spec and getattr(spec, "supports_max_completion_tokens", False):
+        if (
+            spec and getattr(spec, "supports_max_completion_tokens", False)
+        ) or _requires_max_completion_tokens(model_name):
             kwargs["max_completion_tokens"] = max(1, max_tokens)
         else:
             kwargs["max_tokens"] = max(1, max_tokens)
@@ -820,8 +850,7 @@ class OpenAICompatProvider(LLMProvider):
     ) -> dict[str, Any]:
         """Build a Responses API body for direct OpenAI requests."""
         model_name = model or self.default_model
-        if self._spec and self._spec.strip_model_prefix:
-            model_name = model_name.split("/")[-1]
+        model_name = self._request_model_name(model_name)
         sanitized_messages = self._sanitize_messages(self._sanitize_empty_content(messages))
         instructions, input_items = convert_messages(sanitized_messages)
 
