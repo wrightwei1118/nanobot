@@ -1,4 +1,7 @@
-![nanobot README cover](./images/readme-cover.png)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./images/readme-cover-dark.png">
+  <img alt="nanobot README cover" src="./images/readme-cover-light.png">
+</picture>
 
 <div align="center">
   <p>
@@ -53,6 +56,27 @@
 
 ## 📢 News
 
+- **2026-06-19** 🔎 Firecrawl app, OpenAI image edits, safer session deletion.
+- **2026-06-18** 💬 Feishu recovery, Keenable search, Mistral polish, workspace-aware git.
+- **2026-06-17** 🧠 Default idle auto-compact, clearer `/dream`, macOS installer fixes.
+- **2026-06-16** 🎯 Fresher goal context, Kimi K2.7 thinking, cleaner API retries.
+- **2026-06-15** 📱 Mobile WebUI polish, optional file tools, real API usage.
+- **2026-06-14** 🖼️ Themed cover, partner links, stronger Codex image streaming.
+- **2026-06-13** 🗓️ Session-bound automations, sturdier WhatsApp, faster WebUI startup.
+- **2026-06-12** 💬 Slack allowlisted channels can require mentions.
+- **2026-06-11** ✂️ Fenced-code message splitting.
+- **2026-06-10** 📜 Segmented transcripts, Exa/Bocha search, StepFun/SiliconFlow ASR.
+
+<details>
+<summary>Earlier news</summary>
+
+- **2026-06-09** 🎙️ Shared voice input, more STT providers, TeX and email polish.
+- **2026-06-08** 🧮 Token heatmap fix, safer MCP HTTP probing, docs cleanup.
+- **2026-06-06** 🧰 SDK MCP cleanup, removable OpenAI image defaults.
+- **2026-06-05** 🖼️ Azure AAD, custom image providers, `/skill`, steadier pairing.
+- **2026-06-04** 🔌 MCP reconnects, `uv pip` install fallback, QQ pairing.
+- **2026-06-03** 🧠 Hidden-history recovery, quieter email progress handling.
+- **2026-06-02** 📬 Email attachments, Napcat QQ, Volcengine search, simpler Dream.
 - **2026-06-01** 🚀 Released **v0.2.1** — **The Workbench Release** turns the packaged WebUI into a daily agent workbench: clearer Thought/response timelines, live file-edit activity, project workspaces, model and context controls, steadier sustained goals, CLI Apps + MCP extensions, and broader provider/channel support. Please see [release notes](https://github.com/HKUDS/nanobot/releases/tag/v0.2.1) for details.
 - **2026-05-30** 🔐 Safer Matrix verification, bounded media downloads, clearer WebUI model timeline.
 - **2026-05-29** 🧩 Extension registry, context-window tuning, document extraction controls.
@@ -63,10 +87,6 @@
 - **2026-05-24** 🧰 MCP presets, richer slash actions, configurable OpenAI-compatible requests.
 - **2026-05-23** 🖼️ Zhipu image generation, longer exec windows, cleaner transcription config.
 - **2026-05-22** 🛠️ CLI Apps, more image providers, safer web redirects and edits.
-
-<details>
-<summary>Earlier news</summary>
-
 - **2026-05-21** ⚡ Novita provider, faster sidebar, smoother coding tools and Weixin replies.
 - **2026-05-20** 📶 Signal channel, faster gateway startup, multilingual README links.
 - **2026-05-19** 🎨 Image provider registry, StepFun and Skywork, stronger WebUI controls.
@@ -205,7 +225,7 @@ If terminals, API keys, or config files are new to you, use the guided zero-back
 macOS / Linux:
 
 ```bash
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/HKUDS/nanobot/main/scripts/install.sh)"
+curl -fsSL https://raw.githubusercontent.com/HKUDS/nanobot/main/scripts/install.sh | sh
 ```
 
 Windows PowerShell:
@@ -214,12 +234,12 @@ Windows PowerShell:
 irm https://raw.githubusercontent.com/HKUDS/nanobot/main/scripts/install.ps1 | iex
 ```
 
-The default command installs or upgrades `nanobot-ai` from PyPI, then starts `nanobot onboard --wizard`. If you finish the wizard and save the config, skip the manual initialize/configure steps below and go straight to **Test one message**.
+The default command installs or upgrades `nanobot-ai` from PyPI, then starts `nanobot onboard --wizard`. It avoids system-wide pip installs by using an active virtual environment, `uv`, `pipx`, or a managed venv under `~/.nanobot/venv`. If you finish the wizard and save the config, skip the manual initialize/configure steps below and go straight to **Test one message**.
 
 To preview the plan without changing your environment, pass `--dry-run`; combine it with `--dev` when you want to preview the main-branch install.
 
 ```bash
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/HKUDS/nanobot/main/scripts/install.sh)" -- --dry-run
+curl -fsSL https://raw.githubusercontent.com/HKUDS/nanobot/main/scripts/install.sh | sh -s -- --dry-run
 ```
 
 ```powershell
@@ -229,7 +249,7 @@ sh -c "$(curl -fsSL https://raw.githubusercontent.com/HKUDS/nanobot/main/scripts
 To install the current `main` branch instead, pass `--dev`:
 
 ```bash
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/HKUDS/nanobot/main/scripts/install.sh)" -- --dev
+curl -fsSL https://raw.githubusercontent.com/HKUDS/nanobot/main/scripts/install.sh | sh -s -- --dev
 ```
 
 ```powershell
@@ -238,17 +258,19 @@ sh -c "$(curl -fsSL https://raw.githubusercontent.com/HKUDS/nanobot/main/scripts
 
 If you prefer to inspect the script first, open [`scripts/install.sh`](./scripts/install.sh) or [`scripts/install.ps1`](./scripts/install.ps1).
 
-**Install from PyPI**
-
-```bash
-python -m pip install nanobot-ai
-```
-
 **Install with `uv`**
 
 ```bash
 uv tool install nanobot-ai
 ```
+
+**Install from PyPI with pip**
+
+```bash
+python -m pip install nanobot-ai
+```
+
+If pip reports `externally-managed-environment` on macOS or Linux, use the one-command installer, `uv tool install nanobot-ai`, `pipx install nanobot-ai`, or install inside a virtual environment.
 
 **Install from source**
 
@@ -356,7 +378,7 @@ Need help with `PATH`, API keys, provider/model matching, or JSON errors? See th
 
 ## 🌐 WebUI
 
-The WebUI ships **inside the published wheel** — no extra build step. Just enable the WebSocket channel and open it in your browser.
+The WebUI ships **inside the published wheel** — no extra build step. It is the browser workbench for chat sessions, workspace controls, Apps, Skills, Automations, and settings. For the full user guide, see [`docs/webui.md`](./docs/webui.md).
 
 <p align="center">
   <img src="images/nanobot_webui.png" alt="nanobot webui preview" width="900">
@@ -378,12 +400,12 @@ nanobot gateway
 
 **3. Open the WebUI**
 
-Visit [`http://127.0.0.1:8765`](http://127.0.0.1:8765) in your browser. To open it from another device on your LAN, see [WebUI docs → LAN access](./webui/README.md#access-from-another-device-lan).
+Visit [`http://127.0.0.1:8765`](http://127.0.0.1:8765) in your browser. To open it from another device on your LAN, see [WebUI docs -> LAN access](./docs/webui.md#lan-access).
 
 The WebUI is served by the WebSocket channel on port `8765` by default. The gateway's `18790` port is for the health endpoint, not the browser UI.
 
 > [!TIP]
-> Working on the WebUI itself? Check out [`webui/README.md`](./webui/README.md) for the Vite dev server (HMR) workflow.
+> Working on the WebUI itself? Check out [`webui/README.md`](./webui/README.md) for the source-tree, Vite dev server, build, and test workflow.
 
 ## 🏗️ Architecture
 
